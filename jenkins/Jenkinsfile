@@ -5,12 +5,9 @@ pipeline {
     environment {
         APP_NAME       = 'cicd-demo'
         REGISTRY       = 'anujjain07'
-        IMAGE_NAME     = "${REGISTRY}/${APP_NAME}"
+        IMAGE_NAME     = "anujjain07/cicd-demo"
         SONAR_HOST_URL = 'http://sonarqube:9000'
         NEXUS_URL      = 'http://nexus:8081'
-        APP_VERSION    = "1.0.${BUILD_NUMBER}"
-        IMAGE_TAG      = ''
-        SHORT_SHA      = ''
     }
 
     options {
@@ -25,8 +22,9 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    env.SHORT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    env.IMAGE_TAG = "${APP_VERSION}-${SHORT_SHA}"
+                    env.SHORT_SHA   = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    env.APP_VERSION = "1.0.${BUILD_NUMBER}"
+                    env.IMAGE_TAG   = "${env.APP_VERSION}-${env.SHORT_SHA}"
                     echo "Branch:  ${env.BRANCH_NAME}"
                     echo "Version: ${env.IMAGE_TAG}"
                 }
@@ -83,7 +81,7 @@ pipeline {
                             mvn sonar:sonar \
                               -Dsonar.projectKey=${APP_NAME} \
                               -Dsonar.projectName=${APP_NAME} \
-                              -Dsonar.projectVersion=${APP_VERSION}
+                              -Dsonar.projectVersion=${env.APP_VERSION}
                         """
                     }
                 }
@@ -107,11 +105,11 @@ pipeline {
                 dir('app') {
                     sh """
                         docker build \
-                          --label app.version=${IMAGE_TAG} \
-                          --label git.sha=${SHORT_SHA} \
-                          --label git.branch=${BRANCH_NAME} \
+                          --label app.version=${env.IMAGE_TAG} \
+                          --label git.sha=${env.SHORT_SHA} \
+                          --label git.branch=${env.BRANCH_NAME} \
                           --label build.number=${BUILD_NUMBER} \
-                          -t ${IMAGE_NAME}:${IMAGE_TAG} \
+                          -t ${IMAGE_NAME}:${env.IMAGE_TAG} \
                           -t ${IMAGE_NAME}:latest \
                           .
                     """
@@ -128,7 +126,7 @@ pipeline {
                       --severity HIGH,CRITICAL \
                       --format table \
                       --exit-code 0 \
-                      ${IMAGE_NAME}:${IMAGE_TAG} | tee trivy-report.txt
+                      ${IMAGE_NAME}:${env.IMAGE_TAG} | tee trivy-report.txt
                 """
             }
             post {
@@ -151,7 +149,7 @@ pipeline {
                 )]) {
                     sh """
                         echo "${REG_PASS}" | docker login -u ${REG_USER} --password-stdin
-                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker push ${IMAGE_NAME}:${env.IMAGE_TAG}
                         docker push ${IMAGE_NAME}:latest
                     """
                 }
@@ -172,8 +170,8 @@ pipeline {
                         sh """
                             curl -u "${NEXUS_USER}:${NEXUS_PASS}" \
                               --upload-file target/${APP_NAME}-1.0.0.jar \
-                              "${NEXUS_URL}/repository/maven-releases/com/demo/${APP_NAME}/${APP_VERSION}/${APP_NAME}-${APP_VERSION}.jar"
-                            echo "Artifact uploaded: ${APP_NAME}-${APP_VERSION}.jar"
+                              "${NEXUS_URL}/repository/maven-releases/com/demo/${APP_NAME}/${env.APP_VERSION}/${APP_NAME}-${env.APP_VERSION}.jar"
+                            echo "Artifact uploaded: ${APP_NAME}-${env.APP_VERSION}.jar"
                         """
                     }
                 }
@@ -196,8 +194,8 @@ pipeline {
                           --namespace ${namespace} \
                           --values ${valuesFile} \
                           --set image.repository=${IMAGE_NAME} \
-                          --set image.tag=${IMAGE_TAG} \
-                          --set app.version=${APP_VERSION} \
+                          --set image.tag=${env.IMAGE_TAG} \
+                          --set app.version=${env.APP_VERSION} \
                           --atomic \
                           --timeout 5m \
                           --wait
@@ -212,10 +210,14 @@ pipeline {
 
     post {
         always {
-            sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+            script {
+                if (env.IMAGE_TAG) {
+                    sh "docker rmi ${IMAGE_NAME}:${env.IMAGE_TAG} || true"
+                }
+            }
             cleanWs()
         }
-        success { echo "SUCCESS - ${APP_NAME}:${IMAGE_TAG}" }
+        success { echo "SUCCESS - ${APP_NAME}" }
         failure { echo "FAILED - check logs above" }
     }
 }
