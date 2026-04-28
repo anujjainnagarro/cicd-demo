@@ -25,7 +25,6 @@ public class App {
 
     @GetMapping("/version")
     public String version() {
-        String ver = System.getenv("APP_VERSION");
-        return "{\"version\":\"" + (ver != null ? ver : "1.0.0") + "\"}";
+        return "{\"version\":\"1.0.0\"}";
     }
 }
