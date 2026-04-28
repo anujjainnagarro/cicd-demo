@@ -18,12 +18,14 @@ livenessProbe:
   httpGet:
     path: /health
     port: 8080
-  initialDelaySeconds: 60
-  periodSeconds: 10
+  initialDelaySeconds: 120
+  periodSeconds: 15
+  failureThreshold: 10
 
 readinessProbe:
   httpGet:
     path: /health
     port: 8080
-  initialDelaySeconds: 40
-  periodSeconds: 5
+  initialDelaySeconds: 90
+  periodSeconds: 10
+  failureThreshold: 10

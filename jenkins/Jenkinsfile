@@ -200,7 +200,7 @@ pipeline {
                           --set image.tag=${env.IMAGE_TAG} \
                           --set app.version=${env.APP_VERSION} \
                           --atomic \
-                          --timeout 5m \
+                          --timeout 10m \
                           --wait
 
                         kubectl rollout status deployment/${APP_NAME} \
