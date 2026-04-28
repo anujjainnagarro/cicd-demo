@@ -1,0 +1,6 @@
+app/target/
+*.class
+*.jar
+*.sarif
+*.env
+.idea/
