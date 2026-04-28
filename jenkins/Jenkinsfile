@@ -6,8 +6,8 @@ pipeline {
         APP_NAME       = 'cicd-demo'
         REGISTRY       = 'anujjain07'
         IMAGE_NAME     = "anujjain07/cicd-demo"
-        SONAR_HOST_URL = 'http://sonarqube:9000'
-        NEXUS_URL      = 'http://nexus:8081'
+        SONAR_HOST_URL = 'http://98.84.97.25:9000'
+        NEXUS_URL      = 'http://98.84.97.25:8081'
     }
 
     options {
