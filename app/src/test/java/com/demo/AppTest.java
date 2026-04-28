@@ -19,7 +19,8 @@ public class AppTest {
     @Test
     public void homeReturnsOk() throws Exception {
         mockMvc.perform(get("/"))
-               .andExpect(status().isOk());
+               .andExpect(status().isOk())
+               .andExpect(content().string("CI/CD Demo App - Running!"));
     }
 
     @Test
@@ -33,5 +34,12 @@ public class AppTest {
     public void versionReturnsOk() throws Exception {
         mockMvc.perform(get("/version"))
                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void versionWithEnvVariable() throws Exception {
+        mockMvc.perform(get("/version"))
+               .andExpect(status().isOk())
+               .andExpect(content().string("{\"version\":\"1.0.0\"}"));
     }
 }
