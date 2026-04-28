@@ -16,22 +16,22 @@ service:
 
 resources:
   requests:
-    cpu: "100m"
-    memory: "256Mi"
+    cpu: "50m"
+    memory: "128Mi"
   limits:
-    cpu: "500m"
-    memory: "512Mi"
+    cpu: "200m"
+    memory: "256Mi"
 
 livenessProbe:
   httpGet:
     path: /health
     port: 8080
-  initialDelaySeconds: 30
+  initialDelaySeconds: 60
   periodSeconds: 10
 
 readinessProbe:
   httpGet:
     path: /health
     port: 8080
-  initialDelaySeconds: 20
+  initialDelaySeconds: 40
   periodSeconds: 5
